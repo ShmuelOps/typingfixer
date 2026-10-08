@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 
 if CommandLine.arguments.contains("--selftest") {
     selftest()
@@ -22,6 +23,10 @@ final class App: NSObject, NSApplicationDelegate {
         sound.target = self
         sound.state = .on
         menu.addItem(sound)
+        let login = NSMenuItem(title: "Launch at login", action: #selector(toggleLogin(_:)), keyEquivalent: "")
+        login.target = self
+        login.state = SMAppService.mainApp.status == .enabled ? .on : .off
+        menu.addItem(login)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit LayoutFix", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
@@ -41,6 +46,19 @@ final class App: NSObject, NSApplicationDelegate {
         item.button?.title = "!"
         item.button?.toolTip = "LayoutFix needs Accessibility permission"
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.startWhenTrusted() }
+    }
+
+    @objc func toggleLogin(_ sender: NSMenuItem) {
+        do {
+            if SMAppService.mainApp.status == .enabled {
+                try SMAppService.mainApp.unregister()
+            } else {
+                try SMAppService.mainApp.register()
+            }
+        } catch {
+            NSAlert(error: error).runModal()
+        }
+        sender.state = SMAppService.mainApp.status == .enabled ? .on : .off
     }
 
     @objc func toggleSound(_ sender: NSMenuItem) {
