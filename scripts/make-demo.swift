@@ -20,20 +20,18 @@ let enToHe: [Character: Character] = [
 struct Frame { var screen: String; var keys: String; var hebrew: Bool; var toast: Bool; var ms: Int }
 
 // --- timeline ---
+// Like the live app: the space after "tuvc" is held back, both words are swapped, then the
+// space lands after them, all within one keystroke. Typing never pauses; the toast lingers.
 let keys = Array("tbh tuvc t, vtpkhemhv")
 let fixAt = 8 // index of the space after "tuvc"
+let step = 120, toastFrames = 10
 var frames = [Frame(screen: "", keys: "", hebrew: false, toast: false, ms: 900)]
 var screen = ""
 for (i, k) in keys.enumerated() {
-    let typed = String(keys[...i])
-    if i == fixAt {
-        frames.append(Frame(screen: screen + " ", keys: typed, hebrew: false, toast: false, ms: 350))
-        screen = "אני אוהב "
-        frames.append(Frame(screen: screen, keys: typed, hebrew: true, toast: true, ms: 1700))
-        continue
-    }
+    if i == fixAt { screen = "אני אוהב" }
     screen.append(i < fixAt ? k : (k == " " ? " " : enToHe[k]!))
-    frames.append(Frame(screen: screen, keys: typed, hebrew: i > fixAt, toast: false, ms: k == " " ? 220 : 120))
+    let toast = i >= fixAt && i < fixAt + toastFrames
+    frames.append(Frame(screen: screen, keys: String(keys[...i]), hebrew: i >= fixAt, toast: toast, ms: step))
 }
 frames.append(Frame(screen: screen, keys: String(keys), hebrew: true, toast: false, ms: 3000))
 
@@ -78,7 +76,10 @@ func render(_ f: Frame) -> CGImage {
     let inner = field.insetBy(dx: 28, dy: 22)
     text.draw(in: inner)
     // caret at the end of the line: right of LTR text, left of RTL text
-    let tw = text.size().width
+    // (measure trailing spaces explicitly: AppKit lets them hang past the line edge)
+    let trimmed = f.screen.replacingOccurrences(of: " +$", with: "", options: .regularExpression)
+    let spaces = CGFloat(f.screen.count - trimmed.count) * attr(" ", 38, .white, .medium).size().width
+    let tw = attr(trimmed, 38, .white, .medium).size().width + spaces
     let caretX = rtl ? inner.maxX - tw - 4 : inner.minX + tw + 3
     box(NSRect(x: caretX, y: inner.minY + 6, width: 3, height: 42), red, 1.5)
 
