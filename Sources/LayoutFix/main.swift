@@ -11,9 +11,7 @@ final class App: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ note: Notification) {
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        let icon = NSImage(systemSymbolName: "arrow.left.arrow.right", accessibilityDescription: "LayoutFix")
-        icon?.isTemplate = true // follows light/dark menu bar
-        item.button?.image = icon
+        item.button?.image = menuIcon()
         item.button?.imagePosition = .imageLeading
         let menu = NSMenu()
         let toggle = NSMenuItem(title: "Enabled", action: #selector(toggle(_:)), keyEquivalent: "")
