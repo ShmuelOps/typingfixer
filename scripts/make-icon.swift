@@ -1,11 +1,12 @@
 // Renders Resources/AppIcon.icns: an S-shaped two-way arrow in red-on-black
-// (black tile, red #FF0055). Run from the repo root: swift scripts/make-icon.swift [preview.png]
+// (black tile, red #FF0055), plus docs/logo.png (arrow only, transparent) for the README.
+// Run from the repo root: swift scripts/make-icon.swift [preview.png]
 import AppKit
 
 let accentRed = CGColor(srgbRed: 1.0, green: 0.0, blue: 0.33, alpha: 1)
 let accentPink = CGColor(srgbRed: 1.0, green: 0.42, blue: 0.62, alpha: 1)
 
-func png(_ size: Int) -> Data {
+func png(_ size: Int, tile drawTile: Bool = true) -> Data {
     let s = CGFloat(size)
     let ctx = CGContext(data: nil, width: size, height: size, bitsPerComponent: 8, bytesPerRow: 0,
                         space: CGColorSpace(name: CGColorSpace.sRGB)!,
@@ -16,12 +17,14 @@ func png(_ size: Int) -> Data {
     // macOS icon grid: 824/1024 body with ~18% corner radius
     let tile = CGPath(roundedRect: CGRect(x: 0.098, y: 0.098, width: 0.804, height: 0.804),
                       cornerWidth: 0.18, cornerHeight: 0.18, transform: &px)
+    if drawTile {
     ctx.saveGState()
     ctx.addPath(tile)
     ctx.clip()
     ctx.drawLinearGradient(CGGradient(colorsSpace: nil, colors: [CGColor(gray: 0.15, alpha: 1), CGColor(gray: 0.05, alpha: 1)] as CFArray, locations: nil)!,
                            start: pt(0.5, 0.9), end: pt(0.5, 0.1), options: [])
     ctx.restoreGState()
+    }
 
     // One S-stroke: arrow down at bottom-left, rises, sweeps across, arrow up at top-right
     let a = CGPoint(x: 0.31, y: 0.30), b = CGPoint(x: 0.69, y: 0.70)
@@ -58,4 +61,5 @@ p.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
 p.arguments = ["-c", "icns", iconset.path, "-o", "Resources/AppIcon.icns"]
 try! p.run()
 p.waitUntilExit()
-print("wrote Resources/AppIcon.icns")
+try! png(512, tile: false).write(to: URL(fileURLWithPath: "docs/logo.png"))
+print("wrote Resources/AppIcon.icns, docs/logo.png")

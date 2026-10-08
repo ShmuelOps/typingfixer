@@ -1,4 +1,29 @@
-# LayoutFix
+<p align="center">
+  <img src="docs/logo.png" width="140" alt="LayoutFix logo">
+</p>
+
+<h1 align="center">LayoutFix</h1>
+
+<h3 align="center">Type in Hebrew or English. The keyboard layout catches up.</h3>
+
+<p align="center">
+  <img src="docs/demo.gif" width="720" alt="Typing אני אוהב את האפליקציה with the English layout on: LayoutFix fixes it to Hebrew">
+</p>
+
+<p align="center">
+  <a href="https://github.com/ShmuelOps/typingfixer/releases/latest"><img src="https://img.shields.io/badge/Download_for_macOS-FF0055?style=for-the-badge&logo=apple&logoColor=white" alt="Download for macOS"></a>
+</p>
+
+<p align="center"><code>macOS 13+ · Universal · no network</code></p>
+
+<p align="center">
+  LayoutFix notices when you're typing in the wrong layout and fixes the word for you,<br>
+  so you never have to think about it again.
+</p>
+
+---
+
+## How it works
 
 Menu-bar app for macOS 13+. When you finish a word typed in the wrong keyboard
 layout (`ביקבל` → `check`, `akuo` → `שלום`), it retypes the word in the right
