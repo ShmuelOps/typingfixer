@@ -11,6 +11,10 @@ final class App: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ note: Notification) {
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        let icon = NSImage(systemSymbolName: "arrow.left.arrow.right", accessibilityDescription: "LayoutFix")
+        icon?.isTemplate = true // follows light/dark menu bar
+        item.button?.image = icon
+        item.button?.imagePosition = .imageLeading
         let menu = NSMenu()
         let toggle = NSMenuItem(title: "Enabled", action: #selector(toggle(_:)), keyEquivalent: "")
         toggle.target = self
@@ -28,17 +32,19 @@ final class App: NSObject, NSApplicationDelegate {
     /// The event tap can't be created until Accessibility is granted; retry until it is.
     func startWhenTrusted() {
         if AXIsProcessTrusted() && typist.start() {
-            item.button?.title = "⇄"
+            item.button?.title = ""
+            item.button?.toolTip = "LayoutFix"
             return
         }
-        item.button?.title = "⇄ !"
+        item.button?.title = "!"
+        item.button?.toolTip = "LayoutFix needs Accessibility permission"
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.startWhenTrusted() }
     }
 
     @objc func toggle(_ sender: NSMenuItem) {
         typist.enabled.toggle()
         sender.state = typist.enabled ? .on : .off
-        item.button?.title = typist.enabled ? "⇄" : "⇄ off"
+        item.button?.appearsDisabled = !typist.enabled
     }
 }
 

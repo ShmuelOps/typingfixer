@@ -12,7 +12,8 @@ done
 rm -rf build
 APP=build/LayoutFix.app
 BIN=$APP/Contents/MacOS/LayoutFix
-mkdir -p "$APP/Contents/MacOS"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 lipo -create -output "$BIN" .build/{arm64,x86_64}-apple-macosx/release/LayoutFix
 sed "s/__VERSION__/$VERSION/" Resources/Info.plist > "$APP/Contents/Info.plist"
 

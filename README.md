@@ -26,7 +26,7 @@ ad-hoc signed, not notarized, so the first launch needs **right-click → Open**
 (or `xattr -dr com.apple.quarantine /Applications/LayoutFix.app`).
 
 Grant **Accessibility** in System Settings → Privacy & Security. The menu-bar
-icon shows `⇄ !` until it's granted. Ad-hoc builds change identity on every
+arrows icon shows a `!` until it's granted. Ad-hoc builds change identity on every
 release, so re-grant Accessibility after each update (remove the old entry first).
 
 ## Build
