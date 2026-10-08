@@ -20,6 +20,10 @@ final class App: NSObject, NSApplicationDelegate {
         toggle.target = self
         toggle.state = .on
         menu.addItem(toggle)
+        let sound = NSMenuItem(title: "Play sound on swap", action: #selector(toggleSound(_:)), keyEquivalent: "")
+        sound.target = self
+        sound.state = .on
+        menu.addItem(sound)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit LayoutFix", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
@@ -39,6 +43,11 @@ final class App: NSObject, NSApplicationDelegate {
         item.button?.title = "!"
         item.button?.toolTip = "LayoutFix needs Accessibility permission"
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.startWhenTrusted() }
+    }
+
+    @objc func toggleSound(_ sender: NSMenuItem) {
+        typist.sound.toggle()
+        sender.state = typist.sound ? .on : .off
     }
 
     @objc func toggle(_ sender: NSMenuItem) {

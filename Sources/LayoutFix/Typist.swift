@@ -7,6 +7,7 @@ import Carbon
 final class Typist {
     static let marker: Int64 = 0x4C46_4958 // tags events we post, so we skip them
     var enabled = true
+    var sound = true
     private var word = ""
     /// The word right before `word`, separated by exactly one space and not fixed.
     private var prev: String?
@@ -67,6 +68,7 @@ final class Typist {
             delimiter.setIntegerValueField(.eventSourceUserData, value: Self.marker)
             delimiter.post(tap: .cgSessionEventTap)
             select(fix.to)
+            if sound { NSSound(named: "Blow")?.play() } // built-in /System/Library/Sounds
             return nil
         default:
             var len = 0
