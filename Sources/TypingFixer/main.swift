@@ -28,7 +28,7 @@ final class App: NSObject, NSApplicationDelegate {
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
         menu.addItem(login)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit LayoutFix", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit TypingFixer", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
 
         let prompt = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
@@ -40,11 +40,11 @@ final class App: NSObject, NSApplicationDelegate {
     func startWhenTrusted() {
         if AXIsProcessTrusted() && typist.start() {
             item.button?.title = ""
-            item.button?.toolTip = "LayoutFix"
+            item.button?.toolTip = "TypingFixer"
             return
         }
         item.button?.title = "!"
-        item.button?.toolTip = "LayoutFix needs Accessibility permission"
+        item.button?.toolTip = "TypingFixer needs Accessibility permission"
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.startWhenTrusted() }
     }
 

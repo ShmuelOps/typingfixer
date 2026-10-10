@@ -1,13 +1,13 @@
 <p align="center">
-  <img src="docs/logo.png" width="140" alt="LayoutFix logo">
+  <img src="docs/logo.png" width="140" alt="TypingFixer logo">
 </p>
 
-<h1 align="center">LayoutFix</h1>
+<h1 align="center">TypingFixer</h1>
 
 <h3 align="center">Type in Hebrew or English. The keyboard layout catches up.</h3>
 
 <p align="center">
-  <img src="docs/demo.gif" width="720" alt="Typing אני אוהב את האפליקציה with the English layout on: LayoutFix fixes it to Hebrew">
+  <img src="docs/demo.gif" width="720" alt="Typing אני אוהב את האפליקציה with the English layout on: TypingFixer fixes it to Hebrew">
 </p>
 
 <p align="center">
@@ -17,7 +17,7 @@
 <p align="center"><code>macOS 13+ · Universal · no network</code></p>
 
 <p align="center">
-  LayoutFix notices when you're typing in the wrong layout and fixes the word for you,<br>
+  TypingFixer notices when you're typing in the wrong layout and fixes the word for you,<br>
   so you never have to think about it again.
 </p>
 
@@ -46,9 +46,9 @@ Written from scratch; no code from any other app.
 
 ## Install
 
-Download the DMG from Releases and drag LayoutFix to Applications. The build is
+Download the DMG from Releases and drag TypingFixer to Applications. The build is
 ad-hoc signed, not notarized, so the first launch needs **right-click → Open**
-(or `xattr -dr com.apple.quarantine /Applications/LayoutFix.app`).
+(or `xattr -dr com.apple.quarantine /Applications/TypingFixer.app`).
 
 Grant **Accessibility** in System Settings → Privacy & Security. The menu-bar
 arrows icon shows a `!` until it's granted. Ad-hoc builds change identity on every
@@ -57,10 +57,10 @@ release, so re-grant Accessibility after each update (remove the old entry first
 ## Build
 
 ```sh
-scripts/build.sh 0.1.0   # → build/LayoutFix.app, build/LayoutFix-0.1.0.dmg
+scripts/build.sh 0.1.0   # → build/TypingFixer.app, build/TypingFixer-0.1.0.dmg
 ```
 
-Needs the Xcode command-line tools. The script runs `LayoutFix --selftest` and
+Needs the Xcode command-line tools. The script runs `TypingFixer --selftest` and
 the no-network check.
 
 ## Release

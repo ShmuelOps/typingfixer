@@ -22,6 +22,6 @@ func menuIcon(size: CGFloat = 18) -> NSImage {
         return true
     }
     image.isTemplate = true
-    image.accessibilityDescription = "LayoutFix"
+    image.accessibilityDescription = "TypingFixer"
     return image
 }

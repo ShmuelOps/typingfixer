@@ -13,6 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: scripts/build.sh "${GITHUB_REF_NAME#v}"
-      - run: gh release create "$GITHUB_REF_NAME" build/LayoutFix-*.dmg --generate-notes
+      - run: gh release create "$GITHUB_REF_NAME" build/TypingFixer-*.dmg --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}

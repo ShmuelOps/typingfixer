@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "LayoutFix",
+    name: "TypingFixer",
     platforms: [.macOS(.v13)],
-    targets: [.executableTarget(name: "LayoutFix")]
+    targets: [.executableTarget(name: "TypingFixer")]
 )

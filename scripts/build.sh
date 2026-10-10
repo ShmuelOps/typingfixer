@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds build/LayoutFix.app (universal, ad-hoc signed) and build/LayoutFix-<version>.dmg.
+# Builds build/TypingFixer.app (universal, ad-hoc signed) and build/TypingFixer-<version>.dmg.
 # Fails if the binary links or references any networking API.
 set -euo pipefail
 VERSION="${1:-0.0.0-dev}"
@@ -10,11 +10,11 @@ for arch in arm64 x86_64; do
 done
 
 rm -rf build
-APP=build/LayoutFix.app
-BIN=$APP/Contents/MacOS/LayoutFix
+APP=build/TypingFixer.app
+BIN=$APP/Contents/MacOS/TypingFixer
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/"
-lipo -create -output "$BIN" .build/{arm64,x86_64}-apple-macosx/release/LayoutFix
+lipo -create -output "$BIN" .build/{arm64,x86_64}-apple-macosx/release/TypingFixer
 sed "s/__VERSION__/$VERSION/" Resources/Info.plist > "$APP/Contents/Info.plist"
 
 "$BIN" --selftest
@@ -32,5 +32,5 @@ codesign --force --sign - --options runtime "$APP"
 mkdir build/dmg
 cp -R "$APP" build/dmg/
 ln -s /Applications build/dmg/Applications
-hdiutil create -volname LayoutFix -srcfolder build/dmg -ov -format UDZO "build/LayoutFix-$VERSION.dmg"
+hdiutil create -volname TypingFixer -srcfolder build/dmg -ov -format UDZO "build/TypingFixer-$VERSION.dmg"
 rm -rf build/dmg

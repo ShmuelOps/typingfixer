@@ -10,7 +10,7 @@ let W: CGFloat = 900, H: CGFloat = 250, scale: CGFloat = 2
 let red = NSColor(srgbRed: 1.0, green: 0.0, blue: 0.33, alpha: 1)
 let muted = NSColor(white: 0.6, alpha: 1)
 
-// Same map as Sources/LayoutFix/Layout.swift (US key -> macOS Hebrew layout)
+// Same map as Sources/TypingFixer/Layout.swift (US key -> macOS Hebrew layout)
 let enToHe: [Character: Character] = [
     "q": "/", "w": "׳", "e": "ק", "r": "ר", "t": "א", "y": "ט", "u": "ו", "i": "ן", "o": "ם", "p": "פ",
     "a": "ש", "s": "ד", "d": "ג", "f": "כ", "g": "ע", "h": "י", "j": "ח", "k": "ל", "l": "ך", ";": "ף", "'": ",",
