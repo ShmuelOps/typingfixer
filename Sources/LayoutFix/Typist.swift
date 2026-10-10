@@ -47,7 +47,7 @@ final class Typist {
             return pass
         case 49, 36, 48, 76: // space, return, tab, keypad enter
             let isSpace = event.getIntegerValueField(.keyboardEventKeycode) == 49
-            guard let fix = tracker.delimiter(isSpace: isSpace, valid: isWord) else { return pass }
+            guard let fix = tracker.delimiter(isSpace: isSpace, valid: Layout.isWord) else { return pass }
             for _ in 0..<fix.erase { post(51) }
             for ch in fix.text { post(0, String(ch)) }
             // Swallow the delimiter and re-post it, so it lands after the fixed word.
@@ -68,10 +68,6 @@ final class Typist {
         }
     }
 
-    private func isWord(_ w: String, _ lang: String) -> Bool {
-        NSSpellChecker.shared.checkSpelling(of: w, startingAt: 0, language: lang, wrap: false,
-                                            inSpellDocumentWithTag: 0, wordCount: nil).location == NSNotFound
-    }
 
     private func post(_ key: CGKeyCode, _ text: String? = nil) {
         for down in [true, false] {

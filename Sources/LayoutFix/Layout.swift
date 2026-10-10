@@ -1,3 +1,5 @@
+import AppKit
+
 enum Script { case latin, hebrew }
 
 enum Layout {
@@ -28,6 +30,16 @@ enum Layout {
         }
         guard let he = convert(word.lowercased(), enToHe), !valid(word, "en"), valid(he, "he") else { return nil }
         return (he, .hebrew)
+    }
+
+    /// A real word in `lang` per the macOS spell-checker dictionaries, and exactly one word.
+    /// The checker splits at punctuation and accepts single letters, so without the word count
+    /// `aws` -> `ש׳ד` passes as "ש" + "ד".
+    static func isWord(_ w: String, _ lang: String) -> Bool {
+        let checker = NSSpellChecker.shared
+        return checker.countWords(in: w, language: lang) == 1
+            && checker.checkSpelling(of: w, startingAt: 0, language: lang, wrap: false,
+                                     inSpellDocumentWithTag: 0, wordCount: nil).location == NSNotFound
     }
 
     /// The previous word, converted to `script`, when the word after it just got fixed into
@@ -140,5 +152,11 @@ func selftest() {
     // the retro fix still works, and its result can be backspaced into
     let r = replay(["tbh", " ", "tuvc", " "])
     precondition(r.count == 1 && r[0].erase == 8 && r[0].text == "אני אוהב" && r[0].to == .hebrew)
+    // Real dictionaries, where the machine has them (CI runners may not ship Hebrew)
+    if NSSpellChecker.shared.availableLanguages.contains("he") {
+        precondition(Layout.fix("aws", valid: Layout.isWord) == nil)            // ש׳ד is two "words"
+        precondition(Layout.fix("akuo", valid: Layout.isWord)?.text == "שלום")
+        precondition(Layout.fix("ביקבל", valid: Layout.isWord)?.text == "check")
+    }
     print("selftest ok")
 }
