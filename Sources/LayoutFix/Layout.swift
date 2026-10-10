@@ -45,6 +45,57 @@ enum Layout {
     }
 }
 
+/// What's typed around the caret, rebuilt from keystrokes alone.
+struct Tracker {
+    private(set) var word = ""
+    /// The word before the last space, if it was left unfixed (for `Layout.retro`).
+    private var prev: String?
+    /// What's on screen right before the last space, so backspacing over that space
+    /// puts the caret back at the end of a word we know.
+    private var behind: String?
+    /// The caret went back into text we never saw, so `word` is only its tail: don't fix it.
+    private var partial = false
+
+    mutating func type(_ s: String) { word += s }
+
+    mutating func backspace() {
+        if !word.isEmpty {
+            word.removeLast()
+        } else if let b = behind {
+            word = b // deleted the space: back at the end of the previous word
+            behind = nil
+            prev = nil
+        } else {
+            partial = true
+            prev = nil
+        }
+    }
+
+    /// The caret may have moved (click, arrows, shortcuts): forget everything.
+    mutating func reset() { self = Tracker() }
+
+    /// At space/return/tab: the replacement to type, if the finished word was in the wrong layout.
+    mutating func delimiter(isSpace: Bool, valid: (String, String) -> Bool) -> (erase: Int, text: String, to: Script)? {
+        defer { word = "" }
+        let fix = partial ? nil : Layout.fix(word, valid: valid)
+        partial = false
+        guard let fix else {
+            prev = isSpace && !word.isEmpty ? word : nil
+            behind = prev
+            return nil
+        }
+        var erase = word.count
+        var text = fix.text
+        if let p = prev, let fixed = Layout.retro(p, to: fix.to, valid: valid) {
+            erase += 1 + p.count
+            text = fixed + " " + text
+        }
+        prev = nil
+        behind = isSpace ? text.split(separator: " ").last.map(String.init) : nil
+        return (erase, text, fix.to)
+    }
+}
+
 func selftest() {
     let words: [String: Set<String>] = ["en": ["check", "why", "want", "tbh", "i"], "he": ["תהיה", "שלום", "אני", "אוהב"]]
     let valid = { (w: String, lang: String) in words[lang]!.contains(w) }
@@ -67,5 +118,27 @@ func selftest() {
     precondition(Layout.retro("ן", to: .latin, valid: valid) == "i")
     precondition(Layout.retro("want", to: .hebrew, valid: valid) == nil)  // no Hebrew reading
     precondition(Layout.retro("אני", to: .hebrew, valid: valid) == nil)   // already Hebrew
+
+    // Keystroke replays through the tracker
+    let dict: [String: Set<String>] = ["en": ["checking", "tbh"], "he": ["אני", "אוהב", "מע"]]
+    let ok = { (w: String, lang: String) in dict[lang]!.contains(w) }
+    func replay(_ keys: [String]) -> [(erase: Int, text: String, to: Script)] {
+        var t = Tracker(), out: [(erase: Int, text: String, to: Script)] = []
+        for k in keys {
+            switch k {
+            case "⌫": t.backspace()
+            case " ": if let f = t.delimiter(isSpace: true, valid: ok) { out.append(f) }
+            default: t.type(k)
+            }
+        }
+        return out
+    }
+    // "checki", space, back over the space, "ng", space: the word is "checking", not "ng" -> "מע"
+    precondition(replay(["checki", " ", "⌫", "ng", " "]).isEmpty)
+    // backspacing past a word we never saw: the edited word's tail is left alone
+    precondition(replay(["⌫", "ng", " "]).isEmpty)
+    // the retro fix still works, and its result can be backspaced into
+    let r = replay(["tbh", " ", "tuvc", " "])
+    precondition(r.count == 1 && r[0].erase == 8 && r[0].text == "אני אוהב" && r[0].to == .hebrew)
     print("selftest ok")
 }

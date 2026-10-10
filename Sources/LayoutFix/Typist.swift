@@ -3,14 +3,12 @@ import Carbon
 
 /// Watches keystrokes, and when a finished word was typed in the wrong layout,
 /// retypes it in the right one and switches the input source.
-/// Keystrokes live only in `word`; nothing is logged or written to disk.
+/// Keystrokes live only in `tracker` (the current and previous word); nothing is logged or written to disk.
 final class Typist {
     static let marker: Int64 = 0x4C46_4958 // tags events we post, so we skip them
     var enabled = true
     var sound = true
-    private var word = ""
-    /// The word right before `word`, separated by exactly one space and not fixed.
-    private var prev: String?
+    private var tracker = Tracker()
     private var tap: CFMachPort?
 
     func start() -> Bool {
@@ -39,30 +37,19 @@ final class Typist {
               event.getIntegerValueField(.eventSourceUserData) != Self.marker,
               event.flags.isDisjoint(with: [.maskCommand, .maskControl, .maskAlternate])
         else {
-            if event.getIntegerValueField(.eventSourceUserData) != Self.marker { reset() }
+            if event.getIntegerValueField(.eventSourceUserData) != Self.marker { tracker.reset() }
             return pass
         }
 
         switch event.getIntegerValueField(.keyboardEventKeycode) {
         case 51: // delete
-            if word.isEmpty { reset() } else { word.removeLast() }
+            tracker.backspace()
             return pass
         case 49, 36, 48, 76: // space, return, tab, keypad enter
             let isSpace = event.getIntegerValueField(.keyboardEventKeycode) == 49
-            defer { word = "" }
-            guard let fix = Layout.fix(word, valid: isWord) else {
-                prev = isSpace && !word.isEmpty ? word : nil
-                return pass
-            }
-            var erase = word.count
-            var text = fix.text
-            if let prev, let fixed = Layout.retro(prev, to: fix.to, valid: isWord) {
-                erase += 1 + prev.count
-                text = fixed + " " + text
-            }
-            prev = nil
-            for _ in 0..<erase { post(51) }
-            for ch in text { post(0, String(ch)) }
+            guard let fix = tracker.delimiter(isSpace: isSpace, valid: isWord) else { return pass }
+            for _ in 0..<fix.erase { post(51) }
+            for ch in fix.text { post(0, String(ch)) }
             // Swallow the delimiter and re-post it, so it lands after the fixed word.
             let delimiter = event.copy()!
             delimiter.setIntegerValueField(.eventSourceUserData, value: Self.marker)
@@ -76,15 +63,9 @@ final class Typist {
             event.keyboardGetUnicodeString(maxStringLength: 4, actualStringLength: &len, unicodeString: &buf)
             let s = String(utf16CodeUnits: buf, count: len)
             // arrows, escape, function keys etc. move the caret: start over
-            if len == 0 || s.unicodeScalars.contains(where: { $0.value < 0x20 || $0.value >= 0xF700 }) { reset() } else { word += s }
+            if len == 0 || s.unicodeScalars.contains(where: { $0.value < 0x20 || $0.value >= 0xF700 }) { tracker.reset() } else { tracker.type(s) }
             return pass
         }
-    }
-
-    /// The caret may have moved: forget everything typed so far.
-    private func reset() {
-        word = ""
-        prev = nil
     }
 
     private func isWord(_ w: String, _ lang: String) -> Bool {
