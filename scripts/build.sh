@@ -27,7 +27,8 @@ fi
 if strings -a "$BIN" | grep -E 'https?://'; then echo "::error::contains a URL"; exit 1; fi
 echo "no-network check ok"
 
-codesign --force --sign - --options runtime "$APP"
+# SIGN_ID: SHA-1 of the stable signing cert (set in release.yml), so Accessibility survives upgrades.
+codesign --force --sign "${SIGN_ID:--}" --options runtime "$APP"
 
 mkdir build/dmg
 cp -R "$APP" build/dmg/

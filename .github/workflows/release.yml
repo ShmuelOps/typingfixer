@@ -12,7 +12,35 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+      # Self-signed cert: untrusted, but codesign accepts it by hash and the designated
+      # requirement pins it, so macOS keeps the Accessibility grant across versions.
+      - name: Import signing cert
+        env:
+          SIGN_P12: ${{ secrets.SIGN_P12 }}
+          SIGN_P12_PASSWORD: ${{ secrets.SIGN_P12_PASSWORD }}
+        run: |
+          KC="$RUNNER_TEMP/sign.keychain-db"
+          security create-keychain -p ci "$KC"
+          security unlock-keychain -p ci "$KC"
+          echo "$SIGN_P12" | base64 -d > "$RUNNER_TEMP/sign.p12"
+          security import "$RUNNER_TEMP/sign.p12" -k "$KC" -P "$SIGN_P12_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k ci "$KC"
+          security list-keychains -d user -s "$KC"
+          echo "SIGN_ID=$(security find-identity "$KC" | awk '/ 1\)/{print $2; exit}')" >> "$GITHUB_ENV"
       - run: scripts/build.sh "${GITHUB_REF_NAME#v}"
       - run: gh release create "$GITHUB_REF_NAME" build/TypingFixer-*.dmg --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
+      - name: Update Homebrew cask
+        env:
+          TAP_DEPLOY_KEY: ${{ secrets.TAP_DEPLOY_KEY }}
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          SHA=$(shasum -a 256 build/TypingFixer-$V.dmg | cut -d' ' -f1)
+          echo "$TAP_DEPLOY_KEY" > "$RUNNER_TEMP/tap_key" && chmod 600 "$RUNNER_TEMP/tap_key"
+          export GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/tap_key -o StrictHostKeyChecking=accept-new"
+          git clone git@github.com:ShmuelOps/homebrew-tap.git "$RUNNER_TEMP/tap"
+          cd "$RUNNER_TEMP/tap"
+          sed -i '' -e "s/version \".*\"/version \"$V\"/" -e "s/sha256 \".*\"/sha256 \"$SHA\"/" Casks/typingfixer.rb
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -am "typingfixer $V"
+          git push

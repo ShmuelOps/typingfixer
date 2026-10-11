@@ -46,8 +46,12 @@ Written from scratch; no code from any other app.
 
 ## Install
 
-Download the DMG from Releases and drag TypingFixer to Applications. The build is
-ad-hoc signed, not notarized, so the first launch needs **right-click → Open**
+```sh
+brew install --cask shmuelops/tap/typingfixer
+```
+
+Or download the DMG from Releases and drag TypingFixer to Applications. The build is
+self-signed, not notarized, so the first launch needs **right-click → Open**
 (or `xattr -dr com.apple.quarantine /Applications/TypingFixer.app`).
 
 Grant **Accessibility** in System Settings → Privacy & Security. The menu-bar
