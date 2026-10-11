@@ -57,8 +57,9 @@ click **Open Anyway** in System Settings → Privacy & Security
 Homebrew handles this for you.
 
 Grant **Accessibility** in System Settings → Privacy & Security. The menu-bar
-arrows icon shows a `!` until it's granted. Ad-hoc builds change identity on every
-release, so re-grant Accessibility after each update (remove the old entry first).
+arrows icon shows a `!` until it's granted. Releases are signed with the same
+certificate, so the grant carries over to updates (`brew upgrade --cask typingfixer`).
+Coming from 0.5.x or earlier (ad-hoc signed)? Re-grant once: remove the old entry first.
 
 ## Build
 
