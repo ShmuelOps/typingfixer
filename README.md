@@ -51,8 +51,10 @@ brew install --cask shmuelops/tap/typingfixer
 ```
 
 Or download the DMG from Releases and drag TypingFixer to Applications. The build is
-self-signed, not notarized, so the first launch needs **right-click → Open**
-(or `xattr -dr com.apple.quarantine /Applications/TypingFixer.app`).
+self-signed, not notarized, so macOS blocks the first launch: open it once, then
+click **Open Anyway** in System Settings → Privacy & Security
+(or run `xattr -dr com.apple.quarantine /Applications/TypingFixer.app`).
+Homebrew handles this for you.
 
 Grant **Accessibility** in System Settings → Privacy & Security. The menu-bar
 arrows icon shows a `!` until it's granted. Ad-hoc builds change identity on every
