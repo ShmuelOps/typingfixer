@@ -3,7 +3,8 @@ import Carbon
 
 /// Watches keystrokes, and when a finished word was typed in the wrong layout,
 /// retypes it in the right one and switches the input source.
-/// Keystrokes live only in `tracker` (the current and previous word); nothing is logged or written to disk.
+/// Keystrokes live only in `tracker` (the current and previous word); nothing is logged.
+/// The one write: a word retyped right after we fixed it goes to the macOS user dictionary.
 final class Typist {
     static let marker: Int64 = 0x4C46_4958 // tags events we post, so we skip them
     var enabled = true
@@ -47,7 +48,8 @@ final class Typist {
             return pass
         case 49, 36, 48, 76: // space, return, tab, keypad enter
             let isSpace = event.getIntegerValueField(.keyboardEventKeycode) == 49
-            guard let fix = tracker.delimiter(isSpace: isSpace, valid: Layout.isWord) else { return pass }
+            guard let fix = tracker.delimiter(isSpace: isSpace, valid: Layout.isWord,
+                                                    learn: { NSSpellChecker.shared.learnWord($0) }) else { return pass }
             for _ in 0..<fix.erase { post(51) }
             for ch in fix.text { post(0, String(ch)) }
             // Swallow the delimiter and re-post it, so it lands after the fixed word.
