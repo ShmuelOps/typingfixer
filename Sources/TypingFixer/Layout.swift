@@ -67,6 +67,8 @@ struct Tracker {
     private var behind: String?
     /// The caret went back into text we never saw, so `word` is only its tail: don't fix it.
     private var partial = false
+    /// The word as typed before our last fix. Typed again right after, the fix was unwanted.
+    private var undone: String?
 
     mutating func type(_ s: String) { word += s }
 
@@ -84,12 +86,23 @@ struct Tracker {
     }
 
     /// The caret may have moved (click, arrows, shortcuts): forget everything.
-    mutating func reset() { self = Tracker() }
+    /// `undone` survives: deleting the fixed word (⌥⌫, select + delete) also resets.
+    mutating func reset() {
+        let u = undone
+        self = Tracker()
+        undone = u
+    }
 
     /// At space/return/tab: the replacement to type, if the finished word was in the wrong layout.
-    mutating func delimiter(isSpace: Bool, valid: (String, String) -> Bool) -> (erase: Int, text: String, to: Script)? {
+    /// `learn` gets a word the user retyped right after we fixed it, so it's never fixed again.
+    mutating func delimiter(isSpace: Bool, valid: (String, String) -> Bool,
+                            learn: (String) -> Void = { _ in }) -> (erase: Int, text: String, to: Script)? {
         defer { word = "" }
-        let fix = partial ? nil : Layout.fix(word, valid: valid)
+        // ponytail: "same word retyped right after the fix" = rejected; no counting or confirmation
+        let rejected = !word.isEmpty && word == undone
+        undone = nil
+        if rejected { learn(word) }
+        let fix = partial || rejected ? nil : Layout.fix(word, valid: valid)
         partial = false
         guard let fix else {
             prev = isSpace && !word.isEmpty ? word : nil
@@ -103,6 +116,7 @@ struct Tracker {
             text = fixed + " " + text
         }
         prev = nil
+        undone = word
         behind = isSpace ? text.split(separator: " ").last.map(String.init) : nil
         return (erase, text, fix.to)
     }
@@ -134,12 +148,14 @@ func selftest() {
     // Keystroke replays through the tracker
     let dict: [String: Set<String>] = ["en": ["checking", "tbh"], "he": ["אני", "אוהב", "מע"]]
     let ok = { (w: String, lang: String) in dict[lang]!.contains(w) }
+    var learned: [String] = []
     func replay(_ keys: [String]) -> [(erase: Int, text: String, to: Script)] {
         var t = Tracker(), out: [(erase: Int, text: String, to: Script)] = []
         for k in keys {
             switch k {
             case "⌫": t.backspace()
-            case " ": if let f = t.delimiter(isSpace: true, valid: ok) { out.append(f) }
+            case "↺": t.reset()
+            case " ": if let f = t.delimiter(isSpace: true, valid: ok, learn: { learned.append($0) }) { out.append(f) }
             default: t.type(k)
             }
         }
@@ -152,6 +168,12 @@ func selftest() {
     // the retro fix still works, and its result can be backspaced into
     let r = replay(["tbh", " ", "tuvc", " "])
     precondition(r.count == 1 && r[0].erase == 8 && r[0].text == "אני אוהב" && r[0].to == .hebrew)
+    // fixed, user deletes it (⌥⌫ resets) and retypes the same: kept as typed, and learned
+    learned = []
+    precondition(replay(["tuvc", " ", "↺", "tuvc", " "]).count == 1 && learned == ["tuvc"])
+    // a different word after a fix learns nothing
+    learned = []
+    precondition(replay(["tuvc", " ", "tbh", " "]).count == 1 && learned.isEmpty)
     // Real dictionaries: local builds only. CI runners list Hebrew but their dictionaries
     // give different verdicts, so this would test the runner, not the app.
     if ProcessInfo.processInfo.environment["CI"] == nil {

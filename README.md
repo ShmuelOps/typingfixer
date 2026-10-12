@@ -32,6 +32,10 @@ layout and switches the input source. Hebrew ↔ English (US QWERTY / macOS "Heb
 A word is fixed only when what you typed is not a word in its own language and
 the converted text is, according to the macOS spell-checker dictionaries.
 
+Wrong fix? Delete it and type the word again: it's kept as typed and added to
+your macOS user dictionary (`prs` stays `prs` from then on). To undo, right-click
+the word in any app (e.g. TextEdit) → Unlearn Spelling.
+
 Written from scratch; no code from any other app.
 
 ## Privacy
@@ -39,8 +43,9 @@ Written from scratch; no code from any other app.
 - **No networking.** `scripts/build.sh` fails the build if the binary links
   Network.framework or CFNetwork, imports any socket/DNS/URL-loading symbol, or
   contains a URL. There is no update check, no telemetry, no crash reporter.
-- Keystrokes are held in memory only for the current word. Nothing is logged
-  or written to disk.
+- Keystrokes are held in memory only for the current word. Nothing is logged.
+  The only thing written to disk is a word you retype right after a fix, which
+  goes to the macOS user dictionary (`~/Library/Spelling/LocalDictionary`).
 - Password fields: macOS Secure Input hides keystrokes from the app, and it also
   stops processing while Secure Input is on.
 
